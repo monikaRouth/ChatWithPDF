@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>AI Chat with PDF Notes</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+
+
+<body>
+
+
+<!-- HEADER -->
+
+<header class="header">
+
+    <h1>📚 AI PDF Notes</h1>
+
+    <span>Student Dashboard</span>
+
+</header>
+
+
+
+<!-- MAIN CONTENT -->
+
+<main class="container">
+
+
+    <!-- WELCOME -->
+
+    <section class="welcome">
+
+        <h2>
+            Welcome to AI PDF Notes 👋
+        </h2>
+
+        <p>
+            Upload your study notes and ask questions using AI.
+        </p>
+
+    </section>
+
+
+
+    <!-- MESSAGE -->
+
+    {% if message %}
+
+    <div class="success-message">
+
+        {{ message }}
+
+    </div>
+
+    {% endif %}
+
+
+
+    <!-- CARDS -->
+
+    <div class="cards">
+
+
+        <!-- UPLOAD PDF -->
+
+        <div class="card">
+
+            <h3>
+                📄 Upload PDF
+            </h3>
+
+            <p>
+                Upload your study material in PDF format.
+            </p>
+
+
+            <form action="/upload"
+                  method="POST"
+                  enctype="multipart/form-data">
+
+
+                <input
+                    type="file"
+                    name="pdf"
+                    accept=".pdf"
+                    required
+                >
+
+
+                <button type="submit">
+
+                    Upload PDF
+
+                </button>
+
+
+            </form>
+
+        </div>
+
+
+
+        <!-- ASK AI -->
+
+        <div class="card">
+
+            <h3>
+                🤖 Ask AI
+            </h3>
+
+            <p>
+                Select a PDF and ask questions from it.
+            </p>
+
+
+            <form action="/ask"
+                  method="POST">
+
+
+                <!-- PDF SELECT -->
+
+                <label for="pdf_id">
+
+                    Select PDF:
+
+                </label>
+
+
+                <select
+                    name="pdf_id"
+                    id="pdf_id"
+                    required
+                >
+
+                    <option value="">
+
+                        -- Select a PDF --
+
+                    </option>
+
+
+                    {% for pdf in pdfs %}
+
+                    <option
+                        value="{{ pdf.id }}"
+                        {% if selected_pdf|string == pdf.id|string %}
+                            selected
+                        {% endif %}
+                    >
+
+                        {{ pdf.filename }}
+
+                    </option>
+
+                    {% endfor %}
+
+
+                </select>
+
+
+
+                <!-- QUESTION -->
+
+                <input
+                    type="text"
+                    name="question"
+                    class="text-input"
+                    placeholder="Ask something from your notes..."
+                    value="{{ question if question else '' }}"
+                    required
+                >
+
+
+
+                <!-- ASK BUTTON -->
+
+                <button type="submit">
+
+                    Ask AI
+
+                </button>
+
+
+            </form>
+
+
+
+            <!-- AI ANSWER -->
+
+            {% if answer %}
+
+            <div class="answer-box">
+
+                <h3>
+                    🤖 AI Answer
+                </h3>
+
+                <p>
+                    {{ answer }}
+                </p>
+
+            </div>
+
+            {% endif %}
+
+
+        </div>
+
+
+    </div>
+
+
+
+    <!-- MY NOTES -->
+
+    <section class="card notes">
+
+
+        <h3>
+            📚 My Notes
+        </h3>
+
+
+        {% if pdfs %}
+
+
+            {% for pdf in pdfs %}
+
+
+            <div class="note-item">
+
+
+                <span>
+
+                    📄 {{ pdf.filename }}
+
+                </span>
+
+
+
+                <form
+                    action="/delete/{{ pdf.id }}"
+                    method="POST"
+                    style="display: inline;"
+                    onsubmit="return confirm('Are you sure you want to delete this PDF?');"
+                >
+
+
+                    <button type="submit">
+
+                        🗑️ Delete
+
+                    </button>
+
+
+                </form>
+
+
+            </div>
+
+
+            {% endfor %}
+
+
+        {% else %}
+
+
+            <div class="note-item">
+
+                📭 No PDFs uploaded yet.
+
+            </div>
+
+
+        {% endif %}
+
+
+    </section>
+
+
+</main>
+
+
+
+<!-- FOOTER -->
+
+<footer class="footer">
+
+    <p>
+
+        AI-Based Chat with PDF Notes System
+
+    </p>
+
+</footer>
+
+
+</body>
+
+</html>
