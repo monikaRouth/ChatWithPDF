@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign in | Papertrail</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="auth-page">
+    <main class="auth-card">
+        <a class="brand auth-brand" href="{{ url_for('login') }}"><span class="brand-mark">P</span><span>Papertrail</span></a>
+        <p class="eyebrow">Your personal reading room</p>
+        <h1>Welcome back.</h1>
+        <p class="auth-intro">Sign in to return to your documents and conversations.</p>
+        {% if error %}<div class="auth-error">{{ error }}</div>{% endif %}
+        <form class="auth-form" method="POST">
+            <label for="email">Email address</label>
+            <input id="email" name="email" type="email" autocomplete="email" required>
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" autocomplete="current-password" required>
+            <button type="submit">Sign in</button>
+        </form>
+        <p class="auth-switch">New to Papertrail? <a href="{{ url_for('signup') }}">Create an account</a></p>
+    </main>
+</body>
+</html>

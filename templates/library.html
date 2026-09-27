@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Papertrail | My Library</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header class="header">
+    <a class="brand" href="{{ url_for('home') }}">
+        <span class="brand-mark">P</span>
+        <span>Papertrail</span>
+    </a>
+    <span class="header-status"><span class="status-dot"></span> Personal workspace</span>
+</header>
+
+<main class="container app-shell">
+    <aside class="sidebar">
+        <div class="sidebar-top">
+            <p class="sidebar-label">Workspace</p>
+            <nav class="sidebar-nav" aria-label="Main navigation">
+                <a class="sidebar-link" href="{{ url_for('home') }}#dashboard"><span class="sidebar-icon">⌂</span><span>Dashboard</span></a>
+                <a class="sidebar-link" href="{{ url_for('home', upload=1) }}#upload-card"><span class="sidebar-icon">+</span><span>Upload document</span></a>
+                <a class="sidebar-link" href="{{ url_for('home') }}#ask-card"><span class="sidebar-icon">?</span><span>Ask your notes</span></a>
+                <a class="sidebar-link active" href="{{ url_for('library') }}"><span class="sidebar-icon">≡</span><span>My library</span></a>
+            </nav>
+        </div>
+        <div class="sidebar-bottom">
+            <a class="sidebar-profile" href="{{ url_for('logout') }}">
+                <span class="profile-avatar">Y</span>
+                <span><strong>{{ current_user }}</strong><small>Sign out</small></span>
+            </a>
+        </div>
+    </aside>
+
+    <section class="workspace">
+        <section class="notes library-page" id="library">
+            <div class="notes-header">
+                <div>
+                    <p class="eyebrow">Your collection</p>
+                    <h2>My library</h2>
+                </div>
+                <span class="library-count">{{ pdfs|length }} file{% if pdfs|length != 1 %}s{% endif %}</span>
+            </div>
+
+            <div class="library-toolbar">
+                <label class="search-box" for="library-search">
+                    <span class="search-symbol">/</span>
+                    <input id="library-search" type="search" placeholder="Search your library..." autocomplete="off">
+                </label>
+                <button type="button" class="quiet-button" id="clear-search">Clear search</button>
+            </div>
+
+            {% if pdfs %}
+                <div class="library-grid">
+                {% for pdf in pdfs %}
+                    <div class="note-item" data-library-item>
+                        <span class="note-name">
+                            <span class="pdf-badge">PDF</span>
+                            <span class="note-title-group">
+                                <strong>{{ pdf.filename }}</strong>
+                                <small>Uploaded {{ pdf.uploaded_date }}</small>
+                            </span>
+                        </span>
+                        <div class="note-details">
+                            <span><strong>{{ pdf.page_count }}</strong><small>Pages</small></span>
+                            <span><strong>{{ pdf.file_size }}</strong><small>Size</small></span>
+                            <span><strong>{{ pdf.message_count }}</strong><small>AI messages</small></span>
+                        </div>
+                        <form action="{{ url_for('delete_pdf', pdf_id=pdf.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this PDF?');">
+                            <button type="submit">Remove</button>
+                        </form>
+                    </div>
+                {% endfor %}
+                </div>
+            {% else %}
+                <div class="note-item empty-library" data-empty-library>Your library is ready for its first document.</div>
+            {% endif %}
+        </section>
+    </section>
+</main>
+
+<footer class="footer"><p>PAPERTRAIL / AI PDF NOTES</p></footer>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

@@ -8,7 +8,7 @@
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0">
 
-    <title>AI Chat with PDF Notes</title>
+    <title>Papertrail | AI PDF Notes</title>
 
     <link rel="stylesheet"
           href="{{ url_for('static', filename='style.css') }}">
@@ -23,9 +23,12 @@
 
 <header class="header">
 
-    <h1>📚 AI PDF Notes</h1>
+    <a class="brand" href="/">
+        <span class="brand-mark">P</span>
+        <span>Papertrail</span>
+    </a>
 
-    <span>Student Dashboard</span>
+    <span class="header-status"><span class="status-dot"></span> Personal workspace</span>
 
 </header>
 
@@ -33,28 +36,97 @@
 
 <!-- MAIN CONTENT -->
 
-<main class="container">
+<main class="container app-shell">
+
+    <aside class="sidebar">
+        <div class="sidebar-top">
+            <p class="sidebar-label">Workspace</p>
+            <nav class="sidebar-nav" aria-label="Main navigation">
+                <a class="sidebar-link active" href="#dashboard">
+                    <span class="sidebar-icon">⌂</span>
+                    <span>Dashboard</span>
+                </a>
+                <a class="sidebar-link" href="/?upload=1#upload-card">
+                    <span class="sidebar-icon">+</span>
+                    <span>Upload document</span>
+                </a>
+                <a class="sidebar-link" href="#ask-card">
+                    <span class="sidebar-icon">?</span>
+                    <span>Ask your notes</span>
+                </a>
+                <a class="sidebar-link" href="{{ url_for('library') }}">
+                    <span class="sidebar-icon">≡</span>
+                    <span>My library</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-documents">
+                <p class="sidebar-documents-title">Your documents</p>
+                {% if pdfs %}
+                    <div class="document-list">
+                    {% for pdf in pdfs %}
+                        <button type="button" class="document-row {% if selected_pdf|string == pdf.id|string %}selected{% endif %}" data-pdf-id="{{ pdf.id }}">
+                            <span class="document-file-icon">PDF</span>
+                            <span class="document-file-name">{{ pdf.filename }}</span>
+                            <span class="document-check">✓</span>
+                        </button>
+                    {% endfor %}
+                    </div>
+                    <span class="sidebar-document-hint">Click a document to chat with it</span>
+                {% else %}
+                    <span class="sidebar-document-empty">No documents uploaded yet.</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="sidebar-bottom">
+            <a class="sidebar-profile" href="{{ url_for('logout') }}">
+                <span class="profile-avatar">Y</span>
+                <span><strong>{{ current_user }}</strong><small>Sign out</small></span>
+            </a>
+        </div>
+    </aside>
+
+    <section class="workspace" id="dashboard">
 
 
     <!-- WELCOME -->
 
+    {% if not pdfs %}
     <section class="welcome">
 
-        <h2>
-            Welcome to AI PDF Notes 👋
-        </h2>
+        <div>
+            <p class="eyebrow">Your quiet corner for curious minds</p>
+            <h2>Make every page<br><em>stay with you.</em></h2>
+            <p class="welcome-copy">Keep your important PDFs close, then ask better questions of what you read.</p>
+        </div>
 
-        <p>
-            Upload your study notes and ask questions using AI.
-        </p>
+        <div class="welcome-orbit" aria-hidden="true">
+            <span class="orbit orbit-one"></span>
+            <span class="orbit orbit-two"></span>
+            <span class="orbit-core">AI</span>
+        </div>
 
     </section>
+
+    <nav class="quick-actions" aria-label="Quick actions">
+        <a class="quick-action primary-action" href="#upload-card"><span class="action-symbol">+</span> Add PDF</a>
+        <a class="quick-action" href="#ask-card"><span class="action-symbol">?</span> Ask a question</a>
+        <a class="quick-action" href="#library"><span class="action-symbol">≡</span> Browse library</a>
+    </nav>
+
+    <section class="insight-strip" aria-label="Workspace summary">
+        <div class="insight"><span class="insight-number">{{ pdfs|length }}</span><span class="insight-label">Documents saved</span></div>
+        <div class="insight"><span class="insight-number">AI</span><span class="insight-label">Ready to search</span></div>
+        <div class="insight insight-note"><span class="insight-mark"></span><span class="insight-label">Your notes, one calm place</span></div>
+    </section>
+    {% endif %}
 
 
 
     <!-- MESSAGE -->
 
-    {% if message %}
+    {% if message and not pdfs %}
 
     <div class="success-message">
 
@@ -73,14 +145,20 @@
 
         <!-- UPLOAD PDF -->
 
-        <div class="card">
+        {% if not pdfs or show_upload %}
+        <div class="card upload-card" id="upload-card">
+
+            <div class="card-heading">
+                <span class="card-icon coral-icon">+</span>
+                <span class="card-kicker">Library</span>
+            </div>
 
             <h3>
-                📄 Upload PDF
+                Add a new PDF
             </h3>
 
             <p>
-                Upload your study material in PDF format.
+                Bring a document into your personal reading room.
             </p>
 
 
@@ -89,17 +167,16 @@
                   enctype="multipart/form-data">
 
 
-                <input
-                    type="file"
-                    name="pdf"
-                    accept=".pdf"
-                    required
-                >
+                <label class="file-picker">
+                    <span class="file-picker-title" id="file-name">Choose a PDF file</span>
+                    <span class="file-picker-meta">PDF format · up to your server limit</span>
+                    <input type="file" name="pdf" accept=".pdf" required>
+                </label>
 
 
                 <button type="submit">
 
-                    Upload PDF
+                    Add to library
 
                 </button>
 
@@ -107,144 +184,148 @@
             </form>
 
         </div>
+        {% endif %}
 
 
 
         <!-- ASK AI -->
 
-        <div class="card">
+        {% if pdfs and not show_upload %}
+        <div class="card ask-card chat-card" id="ask-card">
 
-            <h3>
-                🤖 Ask AI
-            </h3>
+            <div class="chat-header">
+                <div class="card-heading">
+                    <span class="card-icon mint-icon">?</span>
+                    <div>
+                        <span class="card-kicker">Your reading companion</span>
+                        <h3>Ask your notes</h3>
+                    </div>
+                </div>
+                <span class="chat-status"><span class="status-dot"></span>{% if pdfs %}Online{% else %}Waiting{% endif %}</span>
+            </div>
 
-            <p>
-                Select a PDF and ask questions from it.
-            </p>
-
-
-            <form action="/ask"
-                  method="POST">
-
-
-                <!-- PDF SELECT -->
-
-                <label for="pdf_id">
-
-                    Select PDF:
-
-                </label>
-
-
-                <select
-                    name="pdf_id"
-                    id="pdf_id"
-                    required
-                >
-
-                    <option value="">
-
-                        -- Select a PDF --
-
-                    </option>
-
-
-                    {% for pdf in pdfs %}
-
-                    <option
-                        value="{{ pdf.id }}"
-                        {% if selected_pdf|string == pdf.id|string %}
-                            selected
-                        {% endif %}
-                    >
-
-                        {{ pdf.filename }}
-
-                    </option>
-
+            <div class="chat-window">
+                {% if conversations %}
+                    {% for conversation in conversations %}
+                    <div class="chat-message user-message">
+                        <div class="message-meta"><span class="message-avatar user-avatar">Y</span><span class="message-label">You</span></div>
+                        <p>{{ conversation.question }}</p>
+                    </div>
+                    <div class="chat-message assistant-message">
+                        <div class="message-meta"><span class="message-avatar ai-avatar">P</span><span class="message-label">Papertrail AI</span></div>
+                        <p>{{ conversation.answer or 'Answer unavailable.' }}</p>
+                    </div>
                     {% endfor %}
+                {% elif pdfs %}
+                <div class="chat-welcome">
+                    <span class="chat-welcome-mark">✦</span>
+                    <strong>Your documents are ready.</strong>
+                    <span>Choose a PDF below and ask anything about it.</span>
+                </div>
+                {% else %}
+                <div class="chat-welcome chat-locked">
+                    <span class="chat-welcome-mark">+</span>
+                    <strong>Upload a document to begin.</strong>
+                    <span>Your question space will stay here whenever you return.</span>
+                    <a href="#upload-card">Go to upload</a>
+                </div>
+                {% endif %}
+            </div>
 
 
-                </select>
+            <form class="chat-form" action="/ask"
+                method="POST">
+
+
+                <input type="hidden" name="pdf_id" id="selected-pdf-id" value="{{ selected_pdf if selected_pdf else '' }}">
 
 
 
                 <!-- QUESTION -->
 
-                <input
-                    type="text"
-                    name="question"
-                    class="text-input"
-                    placeholder="Ask something from your notes..."
-                    value="{{ question if question else '' }}"
-                    required
-                >
+                <div class="chat-input-row">
+                    <input
+                        type="text"
+                        name="question"
+                        class="text-input"
+                        id="question-input"
+                        placeholder="Ask something about this document..."
+                        autocomplete="off"
+                        required
+                    >
+                    <button type="submit" class="send-button" aria-label="Send question"><span>Send</span><span class="send-icon">↑</span></button>
+                </div>
 
 
 
                 <!-- ASK BUTTON -->
 
-                <button type="submit">
+                <div class="ask-actions">
+                    <button type="button" class="quiet-button" id="clear-question">Clear</button>
+                </div>
 
-                    Ask AI
-
-                </button>
+                <div class="prompt-row" aria-label="Question starters">
+                    <span class="prompt-label">Try asking</span>
+                    <button type="button" class="prompt-chip" data-question="What is this PDF about?">Overview</button>
+                    <button type="button" class="prompt-chip" data-question="What are the main topics covered?">Main topics</button>
+                </div>
 
 
             </form>
 
 
 
-            <!-- AI ANSWER -->
-
-            {% if answer %}
-
-            <div class="answer-box">
-
-                <h3>
-                    🤖 AI Answer
-                </h3>
-
-                <p>
-                    {{ answer }}
-                </p>
-
-            </div>
-
-            {% endif %}
-
-
         </div>
+        {% endif %}
 
 
     </div>
 
 
 
+    {% if false %}
     <!-- MY NOTES -->
 
-    <section class="card notes">
+    <section class="notes" id="library">
 
+        <div class="notes-header">
+            <div>
+                <p class="eyebrow">Your collection</p>
+                <h3>My library</h3>
+            </div>
+            <span class="library-count">{{ pdfs|length }} file{% if pdfs|length != 1 %}s{% endif %}</span>
+        </div>
 
-        <h3>
-            📚 My Notes
-        </h3>
+        <div class="library-toolbar">
+            <label class="search-box" for="library-search">
+                <span class="search-symbol">/</span>
+                <input id="library-search" type="search" placeholder="Search your library..." autocomplete="off">
+            </label>
+            <button type="button" class="quiet-button" id="clear-search">Clear search</button>
+        </div>
 
 
         {% if pdfs %}
-
-
+            <div class="library-grid">
             {% for pdf in pdfs %}
 
 
-            <div class="note-item">
+            <div class="note-item" data-library-item>
 
 
-                <span>
-
-                    📄 {{ pdf.filename }}
-
+                <span class="note-name">
+                    <span class="pdf-badge">PDF</span>
+                    <span class="note-title-group">
+                        <strong>{{ pdf.filename }}</strong>
+                        <small>Uploaded {{ pdf.uploaded_date }}</small>
+                    </span>
                 </span>
+
+                <div class="note-details">
+                    <span><strong>{{ pdf.page_count }}</strong><small>Pages</small></span>
+                    <span><strong>{{ pdf.file_size }}</strong><small>Size</small></span>
+                    <span><strong>{{ pdf.message_count }}</strong><small>AI messages</small></span>
+                </div>
 
 
 
@@ -258,7 +339,7 @@
 
                     <button type="submit">
 
-                        🗑️ Delete
+                        Remove
 
                     </button>
 
@@ -270,14 +351,15 @@
 
 
             {% endfor %}
+            </div>
 
 
         {% else %}
 
 
-            <div class="note-item">
+            <div class="note-item empty-library" data-empty-library>
 
-                📭 No PDFs uploaded yet.
+                Your library is ready for its first document.
 
             </div>
 
@@ -286,8 +368,8 @@
 
 
     </section>
-
-
+    </section>
+    {% endif %}
 </main>
 
 
@@ -298,11 +380,13 @@
 
     <p>
 
-        AI-Based Chat with PDF Notes System
+        PAPERTRAIL / AI PDF NOTES
 
     </p>
 
 </footer>
+
+<script src="{{ url_for('static', filename='app.js') }}"></script>
 
 
 </body>
