@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "https://chatwithpdf-vd9v.onrender.com/$1"
+    }
+  ]
+}
