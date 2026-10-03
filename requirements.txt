@@ -1,4 +1,5 @@
 Flask
+gunicorn
 groq
 PyMuPDF
 python-dotenv
